@@ -103,7 +103,8 @@ class RegistrarState extends State<Registrar> {
     _isIos = Theme.of(context).platform == TargetPlatform.iOS;
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text('Flutter login demo'),
+          title: new Text('GTech App'),
+          centerTitle: true,
         ),
         body: Stack(
           children: <Widget>[
@@ -186,7 +187,7 @@ class RegistrarState extends State<Registrar> {
         child: CircleAvatar(
           backgroundColor: Colors.transparent,
           radius: 48.0,
-          child: Image.asset('assets/flutter-icon.png'),
+          child: Image.asset('assets/img/flutter-icon.png'),
         ),
       ),
     );
@@ -205,7 +206,7 @@ class RegistrarState extends State<Registrar> {
               Icons.mail,
               color: Colors.grey,
             )),
-        validator: (value) => value.isEmpty ? 'Email can\'t be empty' : null,
+        validator: (value) => value.isEmpty ? 'Email não pode estar em branco' : null,
         onSaved: (value) => _email = value,
       ),
     );
@@ -219,12 +220,12 @@ class RegistrarState extends State<Registrar> {
         obscureText: true,
         autofocus: false,
         decoration: new InputDecoration(
-            hintText: 'Password',
+            hintText: 'Senha',
             icon: new Icon(
               Icons.lock,
               color: Colors.grey,
             )),
-        validator: (value) => value.isEmpty ? 'Password can\'t be empty' : null,
+        validator: (value) => value.isEmpty ? 'Senha não pode estar em branco' : null,
         onSaved: (value) => _password = value,
       ),
     );
@@ -233,9 +234,9 @@ class RegistrarState extends State<Registrar> {
   Widget _showSecondaryButton() {
     return new FlatButton(
       child: _formMode == FormMode.LOGIN
-          ? new Text('Create an account',
+          ? new Text('Criar conta',
               style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300))
-          : new Text('Have an account? Sign in',
+          : new Text('Já tem uma conta? Entrar',
               style:
                   new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300)),
       onPressed: _formMode == FormMode.LOGIN
@@ -256,7 +257,7 @@ class RegistrarState extends State<Registrar> {
             child: _formMode == FormMode.LOGIN
                 ? new Text('Login',
                     style: new TextStyle(fontSize: 20.0, color: Colors.white))
-                : new Text('Create account',
+                : new Text('Criar conta',
                     style: new TextStyle(fontSize: 20.0, color: Colors.white)),
             onPressed: _validateAndSubmit,
           ),

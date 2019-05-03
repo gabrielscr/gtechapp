@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         title: 'GTech App',
+        debugShowCheckedModeBanner: false,
         theme:
             ThemeData(primarySwatch: Colors.blue, brightness: Brightness.dark),
         home: new Login(auth: new Auth()));
