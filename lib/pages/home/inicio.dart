@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gtech_app/base/services/auth.dart';
 import 'package:gtech_app/pages/user/user-create-edit.dart';
+import 'package:gtech_app/pages/user/user-list.dart';
 
 class Inicio extends StatefulWidget {
   @override
@@ -47,7 +48,7 @@ class _InicioState extends State<Inicio> {
                     title: Text('Usuários'),
                     onTap: () {
                       Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => UserCreateEdit()));
+                          MaterialPageRoute(builder: (context) => UserList()));
                     },
                   ),
                 ],
