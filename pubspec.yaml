@@ -34,6 +34,7 @@ dev_dependencies:
   cloud_firestore: ^0.10.1 
   image_picker: any
   image_cropper: any
+  flutter_form_builder: ^3.0.1
 
 
 # For information on the generic Dart part of this file, see the

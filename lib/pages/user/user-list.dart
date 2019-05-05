@@ -1,10 +1,7 @@
-import 'dart:async';
-
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gtech_app/pages/user/user-create-edit.dart';
-import 'package:gtech_app/pages/user/user-edit.dart';
+import 'package:gtech_app/pages/user/user-service.dart';
 
 class UserList extends StatefulWidget {
   @override
@@ -12,13 +9,12 @@ class UserList extends StatefulWidget {
 }
 
 class _UserListState extends State<UserList> {
-  Future getUsers() async {
-    var firestore = Firestore.instance;
+  final db = Firestore.instance;
+  String id;
+  String name;
+  String email;
 
-    QuerySnapshot qn = await firestore.collection("user").getDocuments();
-
-    return qn.documents;
-  }
+  UserService userService = new UserService();
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +24,8 @@ class _UserListState extends State<UserList> {
       ),
       body: Container(
         child: new FutureBuilder(
-          future: getUsers(),
-          builder: (_, snapshot) {
+          future: userService.list(),
+          builder: (context, snapshot) {
             if (!snapshot.hasData)
               return new Center(
                 child: CircularProgressIndicator(),
@@ -37,19 +33,20 @@ class _UserListState extends State<UserList> {
 
             return ListView.builder(
                 itemCount: snapshot.data.length,
-                itemBuilder: (_, index) {
+                itemBuilder: (context, index) {
                   return new ListTile(
                     leading: CircleAvatar(
-                      backgroundImage: NetworkImage(snapshot.data[index].data['fotoPerfil']),
+                      backgroundImage:
+                          NetworkImage(snapshot.data[index].data['fotoPerfil']),
                     ),
                     title: new Text(snapshot.data[index].data['name']),
                     subtitle: Text(snapshot.data[index].data['email']),
                     trailing: IconButton(
                       icon: new Icon(Icons.delete),
                       color: Colors.red,
-                      onPressed: () {},
+                      onPressed: () => delete(snapshot.data[index]),
                     ),
-                    onTap: () => navigateToEdit(snapshot.data[index]),
+                    onTap: () => {},
                   );
                 });
           },
@@ -66,7 +63,40 @@ class _UserListState extends State<UserList> {
   }
 
   navigateToEdit(DocumentSnapshot doc) {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => UserEdit(doc: doc)));
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => UserCreateEdit(doc: doc)));
+  }
+
+  delete(DocumentSnapshot doc) async {
+    executeDelete() async {
+      Navigator.pop(context);
+      userService.delete(doc, context).then((result) {
+        userService.list();
+      });
+    }
+
+    await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Deseja realmente excluir?'),
+            content: Text('Esta ação não pode ser desfeita'),
+            actions: <Widget>[
+              new FlatButton(
+                child: Text('Fechar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              new FlatButton(
+                child: Text('Excluir'),
+                textColor: Colors.red,
+                onPressed: () async {
+                  await executeDelete();
+                },
+              )
+            ],
+          );
+        });
   }
 }
