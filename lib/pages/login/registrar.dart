@@ -1,5 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gtech_app/base/services/auth.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:gtech_app/pages/home/inicio.google.dart';
 
 class Registrar extends StatefulWidget {
   Registrar({this.auth, this.onSignedIn});
@@ -15,6 +19,42 @@ enum FormMode { LOGIN, SIGNUP }
 
 class RegistrarState extends State<Registrar> {
   final _formKey = new GlobalKey<FormState>();
+
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = new GoogleSignIn();
+
+  Future<FirebaseUser> _signGoogle(BuildContext context) async {
+
+
+    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+
+    FirebaseUser userDetails =
+        await _firebaseAuth.signInWithCredential(credential);
+
+    ProviderDetails providerInfo = new ProviderDetails(userDetails.providerId);
+
+    List<ProviderDetails> providerData = new List<ProviderDetails>();
+
+    providerData.add(providerInfo);
+
+    UserDetails details = new UserDetails(
+        userDetails.providerId,
+        userDetails.displayName,
+        userDetails.photoUrl,
+        userDetails.email,
+        providerData);
+
+    Navigator.push(
+        context,
+        new MaterialPageRoute(
+            builder: (context) => new InicioGoogle(detailsUser: details)));
+    return userDetails;
+  }
 
   String _email;
   String _password;
@@ -57,10 +97,11 @@ class RegistrarState extends State<Registrar> {
           _isLoading = false;
         });
 
-        if (userId.length > 0 && userId != null && _formMode == FormMode.LOGIN) {
+        if (userId.length > 0 &&
+            userId != null &&
+            _formMode == FormMode.LOGIN) {
           widget.onSignedIn();
         }
-
       } catch (e) {
         print('Error: $e');
         setState(() {
@@ -74,20 +115,11 @@ class RegistrarState extends State<Registrar> {
     }
   }
 
-
   @override
   void initState() {
     _errorMessage = "";
     _isLoading = false;
     super.initState();
-  }
-
-  void _changeFormToSignUp() {
-    _formKey.currentState.reset();
-    _errorMessage = "";
-    setState(() {
-      _formMode = FormMode.SIGNUP;
-    });
   }
 
   void _changeFormToLogin() {
@@ -114,11 +146,14 @@ class RegistrarState extends State<Registrar> {
         ));
   }
 
-  Widget _showCircularProgress(){
+  Widget _showCircularProgress() {
     if (_isLoading) {
       return Center(child: CircularProgressIndicator());
-    } return Container(height: 0.0, width: 0.0,);
-
+    }
+    return Container(
+      height: 0.0,
+      width: 0.0,
+    );
   }
 
   void _showVerifyEmailSentDialog() {
@@ -127,11 +162,12 @@ class RegistrarState extends State<Registrar> {
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Verify your account"),
-          content: new Text("Link to verify account has been sent to your email"),
+          title: new Text("Verifique sua conta"),
+          content: new Text(
+              "Um e-mail de verificação foi enviado para o seu e-mail"),
           actions: <Widget>[
             new FlatButton(
-              child: new Text("Dismiss"),
+              child: new Text("Fechar"),
               onPressed: () {
                 _changeFormToLogin();
                 Navigator.of(context).pop();
@@ -143,7 +179,7 @@ class RegistrarState extends State<Registrar> {
     );
   }
 
-  Widget _showBody(){
+  Widget _showBody() {
     return new Container(
         padding: EdgeInsets.all(16.0),
         child: new Form(
@@ -155,7 +191,7 @@ class RegistrarState extends State<Registrar> {
               _showEmailInput(),
               _showPasswordInput(),
               _showPrimaryButton(),
-              _showSecondaryButton(),
+              _showGoogleSign(),
               _showErrorMessage(),
             ],
           ),
@@ -206,7 +242,8 @@ class RegistrarState extends State<Registrar> {
               Icons.mail,
               color: Colors.grey,
             )),
-        validator: (value) => value.isEmpty ? 'Email não pode estar em branco' : null,
+        validator: (value) =>
+            value.isEmpty ? 'Email não pode estar em branco' : null,
         onSaved: (value) => _email = value,
       ),
     );
@@ -225,23 +262,10 @@ class RegistrarState extends State<Registrar> {
               Icons.lock,
               color: Colors.grey,
             )),
-        validator: (value) => value.isEmpty ? 'Senha não pode estar em branco' : null,
+        validator: (value) =>
+            value.isEmpty ? 'Senha não pode estar em branco' : null,
         onSaved: (value) => _password = value,
       ),
-    );
-  }
-
-  Widget _showSecondaryButton() {
-    return new FlatButton(
-      child: _formMode == FormMode.LOGIN
-          ? new Text('Criar conta',
-              style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300))
-          : new Text('Já tem uma conta? Entrar',
-              style:
-                  new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w300)),
-      onPressed: _formMode == FormMode.LOGIN
-          ? _changeFormToSignUp
-          : _changeFormToLogin,
     );
   }
 
@@ -252,15 +276,47 @@ class RegistrarState extends State<Registrar> {
           height: 40.0,
           child: new RaisedButton(
             elevation: 5.0,
-            shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(30.0)),
-            color: Colors.blue,
-            child: _formMode == FormMode.LOGIN
-                ? new Text('Login',
-                    style: new TextStyle(fontSize: 20.0, color: Colors.white))
-                : new Text('Criar conta',
-                    style: new TextStyle(fontSize: 20.0, color: Colors.white)),
+            shape: new RoundedRectangleBorder(
+                borderRadius: new BorderRadius.circular(30.0)),
+            color: Colors.white,
+            child: new Text(
+              'Login',
+            ),
             onPressed: _validateAndSubmit,
           ),
         ));
   }
+
+  Widget _showGoogleSign() {
+    return new Padding(
+        padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+        child: SizedBox(
+          height: 40.0,
+          child: Align(
+            alignment: Alignment.center,
+            child: new IconButton(
+              icon: Icon(FontAwesomeIcons.google, color: Colors.red),
+              onPressed: () => _signGoogle(context)
+                  .then((FirebaseUser user) => print(user))
+                  .catchError((e) => print(e)),
+            ),
+          ),
+        ));
+  }
+}
+
+class UserDetails {
+  final String providerDetails;
+  final String userName;
+  final String photoUrl;
+  final String userEmail;
+  final List<ProviderDetails> providerData;
+  UserDetails(this.providerDetails, this.userName, this.photoUrl,
+      this.userEmail, this.providerData);
+}
+
+class ProviderDetails {
+  ProviderDetails(this.providerDetails);
+
+  final String providerDetails;
 }

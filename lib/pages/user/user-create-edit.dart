@@ -4,11 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:gtech_app/base/services/handle-change.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gtech_app/pages/image/image-handler.dart';
 import 'package:gtech_app/pages/user/user-service.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 class UserCreateEdit extends StatefulWidget {
@@ -30,7 +31,7 @@ class _UserCreateEditState extends State<UserCreateEdit> {
 
   UserService userService = new UserService();
 
-  var handleChange = HandleChange();
+  ImagePickerListener _listener;
 
   @override
   Widget build(BuildContext context) {
@@ -51,39 +52,21 @@ class _UserCreateEditState extends State<UserCreateEdit> {
                   SizedBox(
                     height: 20,
                   ),
-                  new GestureDetector(
-                    onTap: () => getImage(),
-                    child: new Center(
-                      child: image == null
-                          ? new Stack(
-                              children: <Widget>[
-                                new Center(
-                                  child: new CircleAvatar(
-                                    radius: 80.0,
-                                    backgroundImage: fotoPerfil == null
-                                        ? AssetImage('assets/img/male.png')
-                                        : AssetImage(fotoPerfil),
-                                    backgroundColor: const Color(0xFF778899),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : new Container(
-                              height: 160.0,
-                              width: 160.0,
-                              decoration: new BoxDecoration(
-                                color: const Color(0xff7c94b6),
-                                image: new DecorationImage(
-                                  image: new ExactAssetImage(image.path),
-                                  fit: BoxFit.cover,
-                                ),
-                                border:
-                                    Border.all(color: Colors.red, width: 5.0),
-                                borderRadius: new BorderRadius.all(
-                                    const Radius.circular(80.0)),
-                              ),
-                            ),
-                    ),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: <Widget>[
+                      new CircleAvatar(
+                        radius: 80.0,
+                        backgroundImage: fotoPerfil == null
+                            ? AssetImage('assets/img/male.png')
+                            : AssetImage(fotoPerfil),
+                        backgroundColor: const Color(0xFF778899),
+                      ),
+                      new IconButton(
+                          onPressed: () => openCamera(),
+                          icon: Icon(FontAwesomeIcons.camera,
+                              color: Colors.white)),
+                    ],
                   ),
                   new TextField(
                     keyboardType: TextInputType.text,
@@ -145,13 +128,34 @@ class _UserCreateEditState extends State<UserCreateEdit> {
     Navigator.of(context).pop();
   }
 
-  Future getImage() async {
+  openCamera() async {
     var img = await ImagePicker.pickImage(
-        source: ImageSource.camera, maxHeight: 200, maxWidth: 200);
+        source: ImageSource.camera, maxHeight: 350, maxWidth: 350);
 
-    setState(() {
-      image = img;
-      filename = basename(image.path);
-    });
+    cropImage(img);
+
+    this.image = img;
   }
+
+  Future cropImage(File image) async {
+    if (image == null) {
+      return;
+    } else {
+      File croppedFile = await ImageCropper.cropImage(
+        toolbarTitle: 'Editar foto',
+        toolbarColor: Colors.black,
+        circleShape: true,
+        sourcePath: image.path,
+        ratioX: 1.0,
+        ratioY: 1.0,
+        maxWidth: 512,
+        maxHeight: 512,
+      );
+      _listener.userImage(croppedFile);
+    }
+  }
+}
+
+abstract class ImagePickerListener {
+  userImage(File _image);
 }

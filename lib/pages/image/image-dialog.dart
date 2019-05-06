@@ -71,8 +71,7 @@ class ImagePickerDialog extends StatelessWidget {
         type: MaterialType.transparency,
         child: new Opacity(
           opacity: 1.0,
-          child: new Dialog(
-              child: Wrap(
+          child: Wrap(
             children: <Widget>[
               new IconButton(
                 iconSize: 30,
@@ -90,7 +89,7 @@ class ImagePickerDialog extends StatelessWidget {
                 icon: Icon(Icons.close),
               )
             ],
-          )),
+          ),
         ));
   }
 }
