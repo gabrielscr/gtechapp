@@ -11,7 +11,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
         title: 'GTech App',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(primarySwatch: Colors.blue),
+        theme:
+            ThemeData(primarySwatch: Colors.blue, appBarTheme: AppBarTheme(color: Colors.black)),
         home: new Login(auth: new Auth()));
   }
 }

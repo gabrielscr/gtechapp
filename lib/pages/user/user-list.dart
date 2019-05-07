@@ -28,7 +28,9 @@ class _UserListState extends State<UserList> {
           builder: (context, snapshot) {
             if (!snapshot.hasData)
               return new Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.black,
+                ),
               );
 
             return ListView.builder(
@@ -53,6 +55,7 @@ class _UserListState extends State<UserList> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.black,
         child: Icon(Icons.add),
         onPressed: () {
           Navigator.push(context,

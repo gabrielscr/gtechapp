@@ -35,6 +35,9 @@ class _InicioState extends State<Inicio> {
               return ListView(
                 children: <Widget>[
                   UserAccountsDrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.black
+                    ),
                     accountName: Text('teste'),
                     accountEmail: Text(snapshot.data.email),
                     currentAccountPicture: CircleAvatar(

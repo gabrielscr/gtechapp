@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:gtech_app/pages/login/registrar.dart';
+import 'package:gtech_app/pages/login/login-page.dart';
 import 'package:gtech_app/pages/user/user-list.dart';
 
 class InicioGoogle extends StatelessWidget {
@@ -29,6 +29,7 @@ class InicioGoogle extends StatelessWidget {
           child: ListView(
         children: <Widget>[
           UserAccountsDrawerHeader(
+            decoration: BoxDecoration(color: Colors.black),
             accountName: Text(detailsUser.userName),
             accountEmail: Text(detailsUser.userEmail),
             currentAccountPicture: CircleAvatar(

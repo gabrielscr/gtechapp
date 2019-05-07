@@ -20,18 +20,37 @@ class UserCreateEdit extends StatefulWidget {
   _UserCreateEditState createState() => _UserCreateEditState();
 }
 
-class _UserCreateEditState extends State<UserCreateEdit> {
+class _UserCreateEditState extends State<UserCreateEdit>
+    with TickerProviderStateMixin, ImagePickerListener {
   String id;
   final _formKey = GlobalKey<FormState>();
   String name;
   String email;
   DateTime dataNascimento;
-  File image;
+  File _image;
   String filename;
+  AnimationController _controller;
+  ImagePickerHandler imagePicker;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = new AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    imagePicker = new ImagePickerHandler(this, _controller);
+    imagePicker.init();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   UserService userService = new UserService();
-
-  ImagePickerListener _listener;
 
   @override
   Widget build(BuildContext context) {
@@ -52,21 +71,39 @@ class _UserCreateEditState extends State<UserCreateEdit> {
                   SizedBox(
                     height: 20,
                   ),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: <Widget>[
-                      new CircleAvatar(
-                        radius: 80.0,
-                        backgroundImage: fotoPerfil == null
-                            ? AssetImage('assets/img/male.png')
-                            : AssetImage(fotoPerfil),
-                        backgroundColor: const Color(0xFF778899),
-                      ),
-                      new IconButton(
-                          onPressed: () => openCamera(),
-                          icon: Icon(FontAwesomeIcons.camera,
-                              color: Colors.white)),
-                    ],
+                  new GestureDetector(
+                    onTap: () => imagePicker.showDialog(context),
+                    child: new Center(
+                      child: _image == null
+                          ? new Stack(
+                              children: <Widget>[
+                                new Center(
+                                  child: new CircleAvatar(
+                                    radius: 80.0,
+                                    backgroundImage: fotoPerfil == null
+                                        ? AssetImage('assets/img/male.png')
+                                        : AssetImage(fotoPerfil),
+                                    backgroundColor: const Color(0xFF778899),
+                                  ),
+                                ),
+                              ],
+                            )
+                          : new Container(
+                              height: 160.0,
+                              width: 160.0,
+                              decoration: new BoxDecoration(
+                                color: const Color(0xff7c94b6),
+                                image: new DecorationImage(
+                                  image: new ExactAssetImage(_image.path),
+                                  fit: BoxFit.cover,
+                                ),
+                                border:
+                                    Border.all(color: Colors.red, width: 5.0),
+                                borderRadius: new BorderRadius.all(
+                                    const Radius.circular(80.0)),
+                              ),
+                            ),
+                    ),
                   ),
                   new TextField(
                     keyboardType: TextInputType.text,
@@ -111,7 +148,7 @@ class _UserCreateEditState extends State<UserCreateEdit> {
 
   void submit(context) async {
     StorageReference ref = FirebaseStorage.instance.ref().child(filename);
-    StorageUploadTask upload = ref.putFile(image);
+    StorageUploadTask upload = ref.putFile(_image);
 
     var downUrl = await (await upload.onComplete).ref.getDownloadURL();
     Map<String, dynamic> userData = {
@@ -128,34 +165,16 @@ class _UserCreateEditState extends State<UserCreateEdit> {
     Navigator.of(context).pop();
   }
 
-  openCamera() async {
-    var img = await ImagePicker.pickImage(
-        source: ImageSource.camera, maxHeight: 350, maxWidth: 350);
+  @override
+  userImage(File _image) {
+    setState(() {
+      this._image = _image;
 
-    cropImage(img);
-
-    this.image = img;
+      if (_image == null) {
+        return;
+      } else {
+        this.filename = _image.absolute.path;
+      }
+    });
   }
-
-  Future cropImage(File image) async {
-    if (image == null) {
-      return;
-    } else {
-      File croppedFile = await ImageCropper.cropImage(
-        toolbarTitle: 'Editar foto',
-        toolbarColor: Colors.black,
-        circleShape: true,
-        sourcePath: image.path,
-        ratioX: 1.0,
-        ratioY: 1.0,
-        maxWidth: 512,
-        maxHeight: 512,
-      );
-      _listener.userImage(croppedFile);
-    }
-  }
-}
-
-abstract class ImagePickerListener {
-  userImage(File _image);
 }

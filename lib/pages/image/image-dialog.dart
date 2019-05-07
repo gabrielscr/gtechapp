@@ -71,24 +71,29 @@ class ImagePickerDialog extends StatelessWidget {
         type: MaterialType.transparency,
         child: new Opacity(
           opacity: 1.0,
-          child: Wrap(
-            children: <Widget>[
-              new IconButton(
-                iconSize: 30,
-                onPressed: () => _listener.openCamera(),
-                icon: Icon(Icons.camera_alt),
-              ),
-              new IconButton(
-                iconSize: 30,
-                onPressed: () => _listener.openGallery(),
-                icon: Icon(Icons.photo_album),
-              ),
-              new IconButton(
-                iconSize: 30,
-                onPressed: () => dismissDialog(),
-                icon: Icon(Icons.close),
-              )
-            ],
+          child: Center(
+            child: Wrap(
+              children: <Widget>[
+                new IconButton(
+                  color: Colors.white,
+                  iconSize: 30,
+                  onPressed: () => _listener.openCamera(),
+                  icon: Icon(Icons.camera_alt),
+                ),
+                new IconButton(
+                  color: Colors.white,
+                  iconSize: 30,
+                  onPressed: () => _listener.openGallery(),
+                  icon: Icon(Icons.photo_album),
+                ),
+                new IconButton(
+                  color: Colors.white,
+                  iconSize: 30,
+                  onPressed: () => dismissDialog(),
+                  icon: Icon(Icons.close),
+                )
+              ],
+            ),
           ),
         ));
   }

@@ -36,7 +36,6 @@ class ImagePickerHandler {
     } else {
       File croppedFile = await ImageCropper.cropImage(
         toolbarTitle: 'Editar foto',
-        toolbarColor: Colors.black,
         circleShape: true,
         sourcePath: image.path,
         ratioX: 1.0,

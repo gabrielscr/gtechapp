@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gtech_app/base/services/auth.dart';
 import 'package:gtech_app/pages/home/inicio.dart';
-import 'package:gtech_app/pages/login/registrar.dart';
+import 'package:gtech_app/pages/login/login-page.dart';
 
 class Login extends StatefulWidget {
   Login({this.auth});
@@ -71,7 +71,7 @@ class LoginState extends State<Login> {
         return _buildWaitingScreen();
         break;
       case AuthStatus.NOT_LOGGED_IN:
-        return new Registrar(
+        return new LoginPage(
           auth: widget.auth,
           onSignedIn: _onLoggedIn,
         );

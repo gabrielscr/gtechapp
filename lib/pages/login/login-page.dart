@@ -5,19 +5,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gtech_app/pages/home/inicio.google.dart';
 
-class Registrar extends StatefulWidget {
-  Registrar({this.auth, this.onSignedIn});
+class LoginPage extends StatefulWidget {
+  LoginPage({this.auth, this.onSignedIn});
 
   final BaseAuth auth;
   final VoidCallback onSignedIn;
 
   @override
-  State<StatefulWidget> createState() => new RegistrarState();
+  State<StatefulWidget> createState() => new LoginPageState();
 }
 
 enum FormMode { LOGIN, SIGNUP }
 
-class RegistrarState extends State<Registrar> {
+class LoginPageState extends State<LoginPage> {
   final _formKey = new GlobalKey<FormState>();
 
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
