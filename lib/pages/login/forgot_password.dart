@@ -49,7 +49,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'Email',
+        hintText: 'E-mail',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -66,13 +66,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         },
         padding: EdgeInsets.all(12),
         color: Theme.of(context).primaryColor,
-        child: Text('FORGOT PASSWORD', style: TextStyle(color: Colors.white)),
+        child: Text('RECUPERAR SENHA', style: TextStyle(color: Colors.white)),
       ),
     );
 
     final signInLabel = FlatButton(
       child: Text(
-        'Sign In',
+        'Entrar',
         style: TextStyle(color: Colors.black54),
       ),
       onPressed: () {
@@ -124,17 +124,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         await Auth.forgotPasswordEmail(email);
         await _changeLoadingVisible();
         Flushbar(
-          title: "Password Reset Email Sent",
+          title: "Sucesso!",
           message:
-              'Check your email and follow the instructions to reset your password.',
+              'Abra o seu e-mail, lá terá instruções para resetar a sua senha.',
           duration: Duration(seconds: 20),
         )..show(context);
       } catch (e) {
         _changeLoadingVisible();
-        print("Forgot Password Error: $e");
+        print("Opa! Ocorreu um erro: $e");
         String exception = Auth.getExceptionText(e);
         Flushbar(
-          title: "Forgot Password Error",
+          title: "Opa! Ocorreu um erro",
           message: exception,
           duration: Duration(seconds: 10),
         )..show(context);

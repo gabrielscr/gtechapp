@@ -70,7 +70,7 @@ class _SignInScreenState extends State<SignInScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'Password',
+        hintText: 'Senha',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -162,10 +162,10 @@ class _SignInScreenState extends State<SignInScreen> {
         await Navigator.pushNamed(context, '/');
       } catch (e) {
         _changeLoadingVisible();
-        print("Opa!: $e");
+        print("Opa! Ocorreu um erro: $e");
         String exception = Auth.getExceptionText(e);
         Flushbar(
-          title: "Opa!",
+          title: "Opa! Ocorreu um erro",
           message: exception,
           duration: Duration(seconds: 5),
         )..show(context);

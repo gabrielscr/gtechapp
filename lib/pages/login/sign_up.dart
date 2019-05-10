@@ -1,41 +1,91 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/services.dart';
 import 'package:gtech_app/base/services/auth.dart';
 import 'package:gtech_app/base/services/validator.dart';
 import 'package:gtech_app/domain/user.dart';
+import 'package:gtech_app/pages/image/image-handler.dart';
 import 'package:gtech_app/widgets/loader.dart';
 
 class SignUpScreen extends StatefulWidget {
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends State<SignUpScreen>
+    with TickerProviderStateMixin, ImagePickerListener {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _firstName = new TextEditingController();
   final TextEditingController _lastName = new TextEditingController();
   final TextEditingController _email = new TextEditingController();
   final TextEditingController _password = new TextEditingController();
 
+  AnimationController _controller;
+  ImagePickerHandler imagePicker;
+  File _image;
+  String photo;
+
   bool _autoValidate = false;
   bool _loadingVisible = false;
+
   @override
   void initState() {
     super.initState();
+    _controller = new AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+
+    imagePicker = new ImagePickerHandler(this, _controller);
+    imagePicker.init();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Widget build(BuildContext context) {
+    var fotoPerfil = photo;
     final logo = Hero(
       tag: 'hero',
       child: CircleAvatar(
           backgroundColor: Colors.transparent,
           radius: 60.0,
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/default.png',
-              fit: BoxFit.cover,
-              width: 120.0,
-              height: 120.0,
+          child: new GestureDetector(
+            onTap: () => imagePicker.showDialog(context),
+            child: new Center(
+              child: _image == null
+                  ? new Stack(
+                      children: <Widget>[
+                        new Center(
+                          child: new CircleAvatar(
+                            radius: 80.0,
+                            backgroundImage: fotoPerfil == null
+                                ? AssetImage('assets/img/male.png')
+                                : AssetImage(fotoPerfil),
+                            backgroundColor: const Color(0xFF778899),
+                          ),
+                        ),
+                      ],
+                    )
+                  : new Container(
+                      height: 160.0,
+                      width: 160.0,
+                      decoration: new BoxDecoration(
+                        color: const Color(0xff7c94b6),
+                        image: new DecorationImage(
+                          image: new ExactAssetImage(_image.path),
+                          fit: BoxFit.cover,
+                        ),
+                        border: Border.all(color: Colors.red, width: 5.0),
+                        borderRadius:
+                            new BorderRadius.all(const Radius.circular(80.0)),
+                      ),
+                    ),
             ),
           )),
     );
@@ -53,7 +103,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'First Name',
+        hintText: 'Nome',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -72,7 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'Last Name',
+        hintText: 'Último nome',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -91,7 +141,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'Email',
+        hintText: 'E-mail',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -110,7 +160,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'Password',
+        hintText: 'Senha',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -132,13 +182,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         },
         padding: EdgeInsets.all(12),
         color: Theme.of(context).primaryColor,
-        child: Text('SIGN UP', style: TextStyle(color: Colors.white)),
+        child: Text('CADASTRAR', style: TextStyle(color: Colors.white)),
       ),
     );
 
     final signInLabel = FlatButton(
       child: Text(
-        'Have an Account? Sign In.',
+        'Já tem uma conta? Entrar',
         style: TextStyle(color: Colors.black54),
       ),
       onPressed: () {
@@ -193,7 +243,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
       String lastName,
       String email,
       String password,
+      String photo,
       BuildContext context}) async {
+    StorageReference ref = FirebaseStorage.instance.ref().child(photo);
+    StorageUploadTask upload = ref.putFile(_image);
+
+    var downUrl = await (await upload.onComplete).ref.getDownloadURL();
+    
     if (_formKey.currentState.validate()) {
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -201,21 +257,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
         //need await so it has chance to go through error if found.
         await Auth.signUp(email, password).then((uID) {
           Auth.addUserSettingsDB(new User(
-            userId: uID,
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-          ));
+              userId: uID,
+              email: email,
+              firstName: firstName,
+              lastName: lastName,
+              photo: downUrl));
         });
         //now automatically login user too
         //await StateWidget.of(context).logInUser(email, password);
         await Navigator.pushNamed(context, '/signin');
       } catch (e) {
         _changeLoadingVisible();
-        print("Sign Up Error: $e");
+        print("Opa! Ocorreu um erro: $e");
         String exception = Auth.getExceptionText(e);
         Flushbar(
-          title: "Sign Up Error",
+          title: "Opa! Ocorreu um erro",
           message: exception,
           duration: Duration(seconds: 5),
         )..show(context);
@@ -223,5 +279,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     } else {
       setState(() => _autoValidate = true);
     }
+  }
+
+  @override
+  userImage(File _image) {
+    setState(() {
+      this._image = _image;
+
+      if (_image == null) {
+        return;
+      } else {
+        this.photo = _image.absolute.path;
+      }
+    });
   }
 }
