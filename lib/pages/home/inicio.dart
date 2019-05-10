@@ -17,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget build(BuildContext context) {
+    final photo = appState?.user?.photo ?? 'assets/img/default.png';
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
         (appState.firebaseUserAuth == null ||
@@ -33,15 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
         tag: 'hero',
         child: CircleAvatar(
             backgroundColor: Colors.transparent,
-            radius: 60.0,
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/default.png',
-                fit: BoxFit.cover,
-                width: 120.0,
-                height: 120.0,
-              ),
-            )),
+            radius: 150.0,
+            backgroundImage: NetworkImage(photo)),
       );
 
       final signOutButton = Padding(
@@ -59,46 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
-      final forgotLabel = FlatButton(
-        child: Text(
-          'Forgot password?',
-          style: TextStyle(color: Colors.black54),
-        ),
-        onPressed: () {
-          Navigator.pushNamed(context, '/forgot-password');
-        },
-      );
-
-      final signUpLabel = FlatButton(
-        child: Text(
-          'Sign Up',
-          style: TextStyle(color: Colors.black54),
-        ),
-        onPressed: () {
-          Navigator.pushNamed(context, '/signup');
-        },
-      );
-
-      final signInLabel = FlatButton(
-        child: Text(
-          'Sign In',
-          style: TextStyle(color: Colors.black54),
-        ),
-        onPressed: () {
-          Navigator.pushNamed(context, '/signin');
-        },
-      );
-//check for null https://stackoverflow.com/questions/49775261/check-null-in-ternary-operation
       final userId = appState?.firebaseUserAuth?.uid ?? '';
       final email = appState?.firebaseUserAuth?.email ?? '';
       final firstName = appState?.user?.firstName ?? '';
       final lastName = appState?.user?.lastName ?? '';
-      final settingsId = appState?.settings?.settingsId ?? '';
-      final userIdLabel = Text('App Id: ');
-      final emailLabel = Text('Email: ');
-      final firstNameLabel = Text('First Name: ');
-      final lastNameLabel = Text('Last Name: ');
-      final settingsIdLabel = Text('SetttingsId: ');
+      final userIdLabel = Text('Id: ');
+      final emailLabel = Text('E-mail: ');
+      final firstNameLabel = Text('Nome: ');
+      final lastNameLabel = Text('Último nome: ');
 
       return Scaffold(
         backgroundColor: Colors.white,
@@ -129,14 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Text(lastName,
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       SizedBox(height: 12.0),
-                      settingsIdLabel,
-                      Text(settingsId,
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      SizedBox(height: 12.0),
                       signOutButton,
-                      signInLabel,
-                      signUpLabel,
-                      forgotLabel
                     ],
                   ),
                 ),

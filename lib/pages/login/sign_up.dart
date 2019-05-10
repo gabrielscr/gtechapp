@@ -54,7 +54,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       tag: 'hero',
       child: CircleAvatar(
           backgroundColor: Colors.transparent,
-          radius: 60.0,
+          radius: 80.0,
           child: new GestureDetector(
             onTap: () => imagePicker.showDialog(context),
             child: new Center(
@@ -245,7 +245,7 @@ class _SignUpScreenState extends State<SignUpScreen>
       String password,
       String photo,
       BuildContext context}) async {
-    StorageReference ref = FirebaseStorage.instance.ref().child(photo);
+    StorageReference ref = FirebaseStorage.instance.ref().child(this.photo);
     StorageUploadTask upload = ref.putFile(_image);
 
     var downUrl = await (await upload.onComplete).ref.getDownloadURL();
