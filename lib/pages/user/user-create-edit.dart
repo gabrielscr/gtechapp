@@ -1,16 +1,15 @@
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:gtech_app/base/services/auth.dart';
+import 'package:gtech_app/base/services/validator.dart';
+import 'package:gtech_app/domain/user.dart';
 import 'package:gtech_app/pages/image/image-handler.dart';
-import 'package:gtech_app/pages/user/user-service.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:gtech_app/widgets/loader.dart';
 
 class UserCreateEdit extends StatefulWidget {
   final DocumentSnapshot doc;
@@ -22,15 +21,19 @@ class UserCreateEdit extends StatefulWidget {
 
 class _UserCreateEditState extends State<UserCreateEdit>
     with TickerProviderStateMixin, ImagePickerListener {
-  String id;
-  final _formKey = GlobalKey<FormState>();
-  String name;
-  String email;
-  DateTime dataNascimento;
-  File _image;
-  String filename;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _firstName = new TextEditingController();
+  final TextEditingController _lastName = new TextEditingController();
+  final TextEditingController _email = new TextEditingController();
+  final TextEditingController _password = new TextEditingController();
+
   AnimationController _controller;
   ImagePickerHandler imagePicker;
+  File _image;
+  String photo;
+
+  bool _autoValidate = false;
+  bool _loadingVisible = false;
 
   @override
   void initState() {
@@ -50,119 +53,226 @@ class _UserCreateEditState extends State<UserCreateEdit>
     super.dispose();
   }
 
-  UserService userService = new UserService();
-
-  @override
   Widget build(BuildContext context) {
-    var fotoPerfil = filename;
-    var appBarText = this.id == null ? 'Inserir Usuário' : 'Editar Usuário';
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(appBarText),
-        ),
-        body: Container(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30.0),
-            child: Form(
-              key: _formKey,
-              autovalidate: true,
-              child: new ListView(
-                children: <Widget>[
-                  SizedBox(
-                    height: 20,
-                  ),
-                  new GestureDetector(
-                    onTap: () => imagePicker.showDialog(context),
-                    child: new Center(
-                      child: _image == null
-                          ? new Stack(
-                              children: <Widget>[
-                                new Center(
-                                  child: new CircleAvatar(
-                                    radius: 80.0,
-                                    backgroundImage: fotoPerfil == null
-                                        ? AssetImage('assets/img/male.png')
-                                        : AssetImage(fotoPerfil),
-                                    backgroundColor: const Color(0xFF778899),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : new Container(
-                              height: 160.0,
-                              width: 160.0,
-                              decoration: new BoxDecoration(
-                                color: const Color(0xff7c94b6),
-                                image: new DecorationImage(
-                                  image: new ExactAssetImage(_image.path),
-                                  fit: BoxFit.cover,
-                                ),
-                                border:
-                                    Border.all(color: Colors.red, width: 5.0),
-                                borderRadius: new BorderRadius.all(
-                                    const Radius.circular(80.0)),
-                              ),
-                            ),
-                    ),
-                  ),
-                  new TextField(
-                    keyboardType: TextInputType.text,
-                    decoration: new InputDecoration(
-                        labelText: 'Nome', icon: Icon(Icons.person)),
-                    onChanged: (v) => this.name = v,
-                  ),
-                  new TextField(
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: new InputDecoration(
-                        labelText: 'E-mail', icon: Icon(Icons.email)),
-                    onChanged: (v) => this.email = v,
-                  ),
-                  FormBuilderDateTimePicker(
-                    attribute: "date",
-                    inputType: InputType.date,
-                    format: DateFormat("dd-MM-yyyy"),
-                    decoration: InputDecoration(
-                        labelText: "Data de nascimento",
-                        icon: Icon(Icons.date_range)),
-                    onChanged: (v) => this.dataNascimento = v,
-                  ),
-                  new ButtonBar(
-                    alignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      new RaisedButton(
-                        child: new Text(
-                          'Inserir',
-                          style: new TextStyle(color: Colors.white),
+    var fotoPerfil = photo;
+    final logo = Hero(
+      tag: 'hero',
+      child: CircleAvatar(
+          backgroundColor: Colors.transparent,
+          radius: 80.0,
+          child: new GestureDetector(
+            onTap: () => imagePicker.showDialog(context),
+            child: new Center(
+              child: _image == null
+                  ? new Stack(
+                      children: <Widget>[
+                        new Center(
+                          child: new CircleAvatar(
+                            radius: 80.0,
+                            backgroundImage: fotoPerfil == null
+                                ? AssetImage('assets/img/male.png')
+                                : AssetImage(fotoPerfil),
+                            backgroundColor: const Color(0xFF778899),
+                          ),
                         ),
-                        onPressed: () => submit(context),
-                        color: Colors.blue,
-                      )
+                      ],
+                    )
+                  : new Container(
+                      height: 160.0,
+                      width: 160.0,
+                      decoration: new BoxDecoration(
+                        color: const Color(0xff7c94b6),
+                        image: new DecorationImage(
+                          image: new ExactAssetImage(_image.path),
+                          fit: BoxFit.cover,
+                        ),
+                        border: Border.all(color: Colors.red, width: 5.0),
+                        borderRadius:
+                            new BorderRadius.all(const Radius.circular(80.0)),
+                      ),
+                    ),
+            ),
+          )),
+    );
+
+    final firstName = TextFormField(
+      autofocus: false,
+      textCapitalization: TextCapitalization.words,
+      controller: _firstName,
+      validator: Validator.validateName,
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(left: 5.0),
+          child: Icon(
+            Icons.person,
+            color: Colors.grey,
+          ), // icon is 48px widget.
+        ), // icon is 48px widget.
+        hintText: 'Nome',
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+      ),
+    );
+
+    final lastName = TextFormField(
+      autofocus: false,
+      textCapitalization: TextCapitalization.words,
+      controller: _lastName,
+      validator: Validator.validateName,
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(left: 5.0),
+          child: Icon(
+            Icons.person,
+            color: Colors.grey,
+          ), // icon is 48px widget.
+        ), // icon is 48px widget.
+        hintText: 'Último nome',
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+      ),
+    );
+
+    final email = TextFormField(
+      keyboardType: TextInputType.emailAddress,
+      autofocus: false,
+      controller: _email,
+      validator: Validator.validateEmail,
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(left: 5.0),
+          child: Icon(
+            Icons.email,
+            color: Colors.grey,
+          ), // icon is 48px widget.
+        ), // icon is 48px widget.
+        hintText: 'E-mail',
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+      ),
+    );
+
+    final password = TextFormField(
+      autofocus: false,
+      obscureText: true,
+      controller: _password,
+      validator: Validator.validatePassword,
+      decoration: InputDecoration(
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(left: 5.0),
+          child: Icon(
+            Icons.lock,
+            color: Colors.grey,
+          ), // icon is 48px widget.
+        ), // icon is 48px widget.
+        hintText: 'Senha',
+        contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
+      ),
+    );
+
+    final signUpButton = Padding(
+      padding: EdgeInsets.symmetric(vertical: 16.0),
+      child: RaisedButton(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        onPressed: () {
+          _emailSignUp(
+              firstName: _firstName.text,
+              lastName: _lastName.text,
+              email: _email.text,
+              password: _password.text,
+              context: context);
+        },
+        padding: EdgeInsets.all(12),
+        color: Theme.of(context).primaryColor,
+        child: Text('CADASTRAR', style: TextStyle(color: Colors.white)),
+      ),
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: LoadingScreen(
+          child: Form(
+            key: _formKey,
+            autovalidate: _autoValidate,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Center(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      logo,
+                      SizedBox(height: 48.0),
+                      firstName,
+                      SizedBox(height: 24.0),
+                      lastName,
+                      SizedBox(height: 24.0),
+                      email,
+                      SizedBox(height: 24.0),
+                      password,
+                      SizedBox(height: 12.0),
+                      signUpButton,
                     ],
-                  )
-                ],
+                  ),
+                ),
               ),
             ),
           ),
-        ));
+          inAsyncCall: _loadingVisible),
+    );
   }
 
-  void submit(context) async {
-    StorageReference ref = FirebaseStorage.instance.ref().child(filename);
+  Future<void> _changeLoadingVisible() async {
+    setState(() {
+      _loadingVisible = !_loadingVisible;
+    });
+  }
+
+  void _emailSignUp(
+      {String firstName,
+      String lastName,
+      String email,
+      String password,
+      String photo,
+      BuildContext context}) async {
+    StorageReference ref = FirebaseStorage.instance.ref().child(this.photo);
     StorageUploadTask upload = ref.putFile(_image);
 
     var downUrl = await (await upload.onComplete).ref.getDownloadURL();
-    Map<String, dynamic> userData = {
-      'name': '$name',
-      'email': '$email',
-      'fotoPerfil': '$downUrl',
-      'dataNascimento': '$dataNascimento'
-    };
-    if (id == null) {
-      userService.create(userData);
+    
+    if (_formKey.currentState.validate()) {
+      try {
+        SystemChannels.textInput.invokeMethod('TextInput.hide');
+        await _changeLoadingVisible();
+        //need await so it has chance to go through error if found.
+        await Auth.signUp(email, password).then((uID) {
+          Auth.addUserSettingsDB(new User(
+              userId: uID,
+              email: email,
+              firstName: firstName,
+              lastName: lastName,
+              photo: downUrl));
+        });
+        //now automatically login user too
+        //await StateWidget.of(context).logInUser(email, password);
+        Navigator.of(context).pop();
+      } catch (e) {
+        _changeLoadingVisible();
+        print("Opa! Ocorreu um erro: $e");
+        String exception = Auth.getExceptionText(e);
+        Flushbar(
+          title: "Opa! Ocorreu um erro",
+          message: exception,
+          duration: Duration(seconds: 5),
+        )..show(context);
+      }
     } else {
-      userService.update(context, userData);
+      setState(() => _autoValidate = true);
     }
-    Navigator.of(context).pop();
   }
 
   @override
@@ -173,7 +283,7 @@ class _UserCreateEditState extends State<UserCreateEdit>
       if (_image == null) {
         return;
       } else {
-        this.filename = _image.absolute.path;
+        this.photo = _image.absolute.path;
       }
     });
   }

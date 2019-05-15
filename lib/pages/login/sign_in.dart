@@ -1,9 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flushbar/flushbar.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gtech_app/base/services/auth.dart';
 import 'package:gtech_app/base/services/state_widget.dart';
 import 'package:gtech_app/base/services/validator.dart';
+import 'package:gtech_app/pages/home/inicio.dart';
 import 'package:gtech_app/widgets/loader.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -22,22 +27,41 @@ class _SignInScreenState extends State<SignInScreen> {
     super.initState();
   }
 
-  Widget build(BuildContext context) {
-    final logo = Hero(
-      tag: 'hero',
-      child: CircleAvatar(
-          backgroundColor: Colors.transparent,
-          radius: 60.0,
-          child: ClipOval(
-            child: Image.asset(
-              'assets/img/admin.png',
-              fit: BoxFit.cover,
-              width: 120.0,
-              height: 120.0,
-            ),
-          )),
-    );
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = new GoogleSignIn();
 
+  Future<FirebaseUser> _signGoogle(BuildContext context) async {
+    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final AuthCredential credential = GoogleAuthProvider.getCredential(
+        accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+
+    FirebaseUser userDetails =
+        await _firebaseAuth.signInWithCredential(credential);
+
+    ProviderDetails providerInfo = new ProviderDetails(userDetails.providerId);
+
+    List<ProviderDetails> providerData = new List<ProviderDetails>();
+
+    providerData.add(providerInfo);
+
+    UserDetails details = new UserDetails(
+        userDetails.providerId,
+        userDetails.displayName,
+        userDetails.photoUrl,
+        userDetails.email,
+        providerData);
+
+    Navigator.push(
+        context,
+        new MaterialPageRoute(
+            builder: (context) => new HomeScreen(userDetails: details)));
+    return userDetails;
+  }
+
+  Widget build(BuildContext context) {
     final email = TextFormField(
       keyboardType: TextInputType.emailAddress,
       autofocus: false,
@@ -51,7 +75,7 @@ class _SignInScreenState extends State<SignInScreen> {
             color: Colors.grey,
           ), // icon is 48px widget.
         ), // icon is 48px widget.
-        hintText: 'Email',
+        hintText: 'E-mail',
         contentPadding: EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(32.0)),
       ),
@@ -76,19 +100,103 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
     );
 
-    final loginButton = Padding(
-      padding: EdgeInsets.symmetric(vertical: 16.0),
-      child: RaisedButton(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        onPressed: () {
-          _emailLogin(
-              email: _email.text, password: _password.text, context: context);
-        },
-        padding: EdgeInsets.all(12),
-        color: Theme.of(context).primaryColor,
-        child: Text('LOGAR', style: TextStyle(color: Colors.white)),
+    final loginButton = Container(
+      margin: const EdgeInsets.only(top: 10.0),
+      padding: const EdgeInsets.only(left: 40.0, right: 40.0),
+      child: new Row(
+        children: <Widget>[
+          new Expanded(
+            child: FlatButton(
+              shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(30.0)),
+              splashColor: Colors.redAccent,
+              color: Colors.black,
+              child: new Row(
+                children: <Widget>[
+                  new Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: Text(
+                      "LOGAR",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  new Expanded(
+                    child: Container(),
+                  ),
+                  new Transform.translate(
+                    offset: Offset(5.0, 0.0),
+                    child: new Container(
+                      padding: const EdgeInsets.all(2),
+                      child: FlatButton(
+                        shape: new RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(28.0)),
+                        splashColor: Colors.white,
+                        color: Colors.white,
+                        child: Icon(FontAwesomeIcons.signInAlt,
+                            color: Colors.black),
+                        onPressed: () => {
+                              _emailLogin(
+                                  email: _email.text,
+                                  password: _password.text,
+                                  context: context)
+                            },
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              onPressed: () => {},
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final loginGoogleButton = Container(
+      margin: const EdgeInsets.only(top: 10.0),
+      padding: const EdgeInsets.only(left: 40.0, right: 40.0),
+      child: new Row(
+        children: <Widget>[
+          new Expanded(
+            child: FlatButton(
+              shape: new RoundedRectangleBorder(
+                  borderRadius: new BorderRadius.circular(30.0)),
+              splashColor: Colors.redAccent,
+              color: Colors.red,
+              child: new Row(
+                children: <Widget>[
+                  new Padding(
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: Text(
+                      "LOGAR COM GMAIL",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  new Expanded(
+                    child: Container(),
+                  ),
+                  new Transform.translate(
+                    offset: Offset(5.0, 0.0),
+                    child: new Container(
+                      padding: const EdgeInsets.all(2),
+                      child: FlatButton(
+                        shape: new RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(28.0)),
+                        splashColor: Colors.white,
+                        color: Colors.white,
+                        child: Icon(FontAwesomeIcons.google, color: Colors.red),
+                        onPressed: () => _signGoogle(context)
+                            .then((FirebaseUser user) => print(user))
+                            .catchError((e) => print(e)),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              onPressed: () => {},
+            ),
+          ),
+        ],
       ),
     );
 
@@ -102,44 +210,64 @@ class _SignInScreenState extends State<SignInScreen> {
       },
     );
 
-    final signUpLabel = FlatButton(
-      child: Text(
-        'Criar uma conta',
-        style: TextStyle(color: Colors.black54),
-      ),
-      onPressed: () {
-        Navigator.pushNamed(context, '/signup');
-      },
-    );
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: LoadingScreen(
-          child: Form(
-            key: _formKey,
-            autovalidate: _autoValidate,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Center(
-                child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              new ClipPath(
+                clipper: MyClipper(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    image: new DecorationImage(
+                      image: AssetImage('assets/img/background.jpg'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  padding: EdgeInsets.only(top: 150.0, bottom: 100.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      logo,
-                      SizedBox(height: 48.0),
-                      email,
-                      SizedBox(height: 24.0),
-                      password,
-                      SizedBox(height: 12.0),
-                      loginButton,
-                      forgotLabel,
-                      signUpLabel
+                      Text(
+                        "GTECH",
+                        style: TextStyle(
+                            fontSize: 50.0, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        "The start of a milionare project",
+                        style: TextStyle(
+                            fontSize: 20.0, fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
               ),
-            ),
+              Form(
+                key: _formKey,
+                autovalidate: _autoValidate,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          SizedBox(height: 48.0),
+                          email,
+                          SizedBox(height: 24.0),
+                          password,
+                          SizedBox(height: 12.0),
+                          loginButton,
+                          loginGoogleButton,
+                          forgotLabel,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           inAsyncCall: _loadingVisible),
     );
@@ -174,4 +302,42 @@ class _SignInScreenState extends State<SignInScreen> {
       setState(() => _autoValidate = true);
     }
   }
+}
+
+class MyClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    Path p = new Path();
+    p.lineTo(size.width, 0.0);
+    p.lineTo(size.width, size.height * 0.85);
+    p.arcToPoint(
+      Offset(0.0, size.height * 0.85),
+      radius: const Radius.elliptical(50.0, 10.0),
+      rotation: 0.0,
+    );
+    p.lineTo(0.0, 0.0);
+    p.close();
+    return p;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper oldClipper) {
+    return true;
+  }
+}
+
+class UserDetails {
+  final String providerDetails;
+  final String userName;
+  final String photoUrl;
+  final String userEmail;
+  final List<ProviderDetails> providerData;
+  UserDetails(this.providerDetails, this.userName, this.photoUrl,
+      this.userEmail, this.providerData);
+}
+
+class ProviderDetails {
+  ProviderDetails(this.providerDetails);
+
+  final String providerDetails;
 }

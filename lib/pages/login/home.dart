@@ -5,7 +5,11 @@ import 'package:gtech_app/pages/login/sign_in.dart';
 import 'package:gtech_app/widgets/loader.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key key, this.userDetails}) : super(key: key);
+
   _HomeScreenState createState() => _HomeScreenState();
+
+  final UserDetails userDetails;
 }
 
 class _HomeScreenState extends State<HomeScreen> {

@@ -10,9 +10,6 @@ class UserList extends StatefulWidget {
 
 class _UserListState extends State<UserList> {
   final db = Firestore.instance;
-  String id;
-  String name;
-  String email;
 
   UserService userService = new UserService();
 
@@ -23,9 +20,11 @@ class _UserListState extends State<UserList> {
         title: Text('Lista de usuários'),
       ),
       body: Container(
-        child: new FutureBuilder(
-          future: userService.list(),
-          builder: (context, snapshot) {
+        child: new StreamBuilder(
+          stream: db.collection('users').snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            final int userLength = snapshot.data.documents.length;
             if (!snapshot.hasData)
               return new Center(
                 child: CircularProgressIndicator(
@@ -34,19 +33,19 @@ class _UserListState extends State<UserList> {
               );
 
             return ListView.builder(
-                itemCount: snapshot.data.length,
+                itemCount: userLength,
                 itemBuilder: (context, index) {
+                  final DocumentSnapshot _user = snapshot.data.documents[index];
                   return new ListTile(
                     leading: CircleAvatar(
-                      backgroundImage:
-                          NetworkImage(snapshot.data[index].data['fotoPerfil']),
+                      backgroundImage: NetworkImage(_user['photo']),
                     ),
-                    title: new Text(snapshot.data[index].data['name']),
-                    subtitle: Text(snapshot.data[index].data['email']),
+                    title: new Text(_user['firstName']),
+                    subtitle: Text(_user['email']),
                     trailing: IconButton(
                       icon: new Icon(Icons.delete),
                       color: Colors.red,
-                      onPressed: () => delete(snapshot.data[index]),
+                      onPressed: () {},
                     ),
                     onTap: () => {},
                   );

@@ -12,7 +12,7 @@ class UserService {
 
   Future<void> create(data) async {
     if (isLoggedIn()) {
-      Firestore.instance.collection('user').add(data).catchError((e) {
+      Firestore.instance.collection('users').add(data).catchError((e) {
         print(e);
       });
     } else {
@@ -23,14 +23,14 @@ class UserService {
   list() async {
     var firestore = Firestore.instance;
 
-    QuerySnapshot qn = await firestore.collection("user").getDocuments();
+    QuerySnapshot qn = await firestore.collection('users').getDocuments();
 
     return qn.documents;
   }
 
   update(selectedDoc, newValues) {
     Firestore.instance
-        .collection('user')
+        .collection('users')
         .document(selectedDoc)
         .updateData(newValues)
         .catchError((e) {
@@ -40,7 +40,7 @@ class UserService {
 
   delete(DocumentSnapshot doc, context) async {
     await Firestore.instance
-        .collection('user')
+        .collection('users')
         .document(doc.documentID)
         .delete();
   }
