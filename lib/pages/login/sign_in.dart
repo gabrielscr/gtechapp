@@ -41,23 +41,10 @@ class _SignInScreenState extends State<SignInScreen> {
     FirebaseUser userDetails =
         await _firebaseAuth.signInWithCredential(credential);
 
-    ProviderDetails providerInfo = new ProviderDetails(userDetails.providerId);
-
-    List<ProviderDetails> providerData = new List<ProviderDetails>();
-
-    providerData.add(providerInfo);
-
-    UserDetails details = new UserDetails(
-        userDetails.providerId,
-        userDetails.displayName,
-        userDetails.photoUrl,
-        userDetails.email,
-        providerData);
-
     Navigator.push(
         context,
         new MaterialPageRoute(
-            builder: (context) => new HomeScreen(userDetails: details)));
+            builder: (context) => new HomeScreen(userDetails: userDetails)));
     return userDetails;
   }
 
@@ -213,61 +200,63 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: LoadingScreen(
-          child: Column(
-            children: <Widget>[
-              new ClipPath(
-                clipper: MyClipper(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: new DecorationImage(
-                      image: AssetImage('assets/img/background.jpg'),
-                      fit: BoxFit.cover,
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                new ClipPath(
+                  clipper: MyClipper(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: new DecorationImage(
+                        image: AssetImage('assets/img/background.jpg'),
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                  ),
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.only(top: 150.0, bottom: 100.0),
-                  child: Column(
-                    children: <Widget>[
-                      Text(
-                        "GTECH",
-                        style: TextStyle(
-                            fontSize: 50.0, fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        "The start of a milionare project",
-                        style: TextStyle(
-                            fontSize: 20.0, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Form(
-                key: _formKey,
-                autovalidate: _autoValidate,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Center(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          SizedBox(height: 48.0),
-                          email,
-                          SizedBox(height: 24.0),
-                          password,
-                          SizedBox(height: 12.0),
-                          loginButton,
-                          loginGoogleButton,
-                          forgotLabel,
-                        ],
-                      ),
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.only(top: 150.0, bottom: 100.0),
+                    child: Column(
+                      children: <Widget>[
+                        Text(
+                          "GTECH",
+                          style: TextStyle(
+                              fontSize: 50.0, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          "The start of a milionare project",
+                          style: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
+                Form(
+                  key: _formKey,
+                  autovalidate: _autoValidate,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            SizedBox(height: 48.0),
+                            email,
+                            SizedBox(height: 24.0),
+                            password,
+                            SizedBox(height: 12.0),
+                            loginButton,
+                            loginGoogleButton,
+                            forgotLabel,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           inAsyncCall: _loadingVisible),
     );
@@ -324,20 +313,4 @@ class MyClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper oldClipper) {
     return true;
   }
-}
-
-class UserDetails {
-  final String providerDetails;
-  final String userName;
-  final String photoUrl;
-  final String userEmail;
-  final List<ProviderDetails> providerData;
-  UserDetails(this.providerDetails, this.userName, this.photoUrl,
-      this.userEmail, this.providerData);
-}
-
-class ProviderDetails {
-  ProviderDetails(this.providerDetails);
-
-  final String providerDetails;
 }

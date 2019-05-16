@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gtech_app/base/services/state_widget.dart';
@@ -11,7 +12,7 @@ class HomeScreen extends StatelessWidget {
   HomeScreen({Key key, this.user, this.userDetails}) : super(key: key);
 
   final User user;
-  final UserDetails userDetails;
+  final FirebaseUser userDetails;
 
   StateModel appState;
   bool _loadingVisible = false;
@@ -30,9 +31,9 @@ class HomeScreen extends StatelessWidget {
         _loadingVisible = false;
       }
 
-      final email =
-          appState?.firebaseUserAuth?.email ?? this.userDetails.userEmail;
-      final firstName = appState?.user?.firstName ?? this.userDetails.userName;
+      final email = appState?.firebaseUserAuth?.email ?? this.userDetails.email;
+      final firstName =
+          appState?.user?.firstName ?? this.userDetails.displayName;
       final lastName = appState?.user?.lastName ?? '';
       final photo = appState?.user?.photo ?? this.userDetails.photoUrl;
 
