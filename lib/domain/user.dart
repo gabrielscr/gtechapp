@@ -21,22 +21,16 @@ class User {
   String lastName;
   String email;
   String photo;
+  DocumentReference reference;
 
-  User({
-    this.userId,
-    this.firstName,
-    this.lastName,
-    this.email,
-    this.photo
-  });
+  User({this.userId, this.firstName, this.lastName, this.email, this.photo});
 
   factory User.fromJson(Map<String, dynamic> json) => new User(
-        userId: json["userId"],
-        firstName: json["firstName"],
-        lastName: json["lastName"],
-        email: json["email"],
-        photo: json['photo']
-      );
+      userId: json["userId"],
+      firstName: json["firstName"],
+      lastName: json["lastName"],
+      email: json["email"],
+      photo: json['photo']);
 
   Map<String, dynamic> toJson() => {
         "userId": userId,
@@ -49,4 +43,15 @@ class User {
   factory User.fromDocument(DocumentSnapshot doc) {
     return User.fromJson(doc.data);
   }
+
+  User.fromMap(Map<String, dynamic> map, {this.reference}) {
+    userId = map["userId"];
+    firstName = map["firstName"];
+    lastName = map["lastName"];
+    email = map["email"];
+    photo = map["photo"];
+  }
+
+  User.fromSnapshot(DocumentSnapshot snapshot)
+      : this.fromMap(snapshot.data, reference: snapshot.reference);
 }

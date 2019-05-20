@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gtech_app/base/services/auth.dart';
-import 'package:gtech_app/domain/settings.dart';
 import 'package:gtech_app/domain/state.dart';
 import 'package:gtech_app/domain/user.dart';
 
@@ -48,12 +47,10 @@ class _StateWidgetState extends State<StateWidget> {
     //print('...initUser...');
     FirebaseUser firebaseUserAuth = await Auth.getCurrentFirebaseUser();
     User user = await Auth.getUserLocal();
-    Settings settings = await Auth.getSettingsLocal();
     setState(() {
       state.isLoading = false;
       state.firebaseUserAuth = firebaseUserAuth;
       state.user = user;
-      state.settings = settings;
     });
   }
 
@@ -62,7 +59,6 @@ class _StateWidgetState extends State<StateWidget> {
     FirebaseUser firebaseUserAuth = await Auth.getCurrentFirebaseUser();
     setState(() {
       state.user = null;
-      state.settings = null;
       state.firebaseUserAuth = firebaseUserAuth;
     });
   }
@@ -71,8 +67,6 @@ class _StateWidgetState extends State<StateWidget> {
     String userId = await Auth.signIn(email, password);
     User user = await Auth.getUserFirestore(userId);
     await Auth.storeUserLocal(user);
-    Settings settings = await Auth.getSettingsFirestore(userId);
-    await Auth.storeSettingsLocal(settings);
     await initUser();
   }
 

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flushbar/flushbar.dart';
@@ -11,15 +10,12 @@ import 'package:gtech_app/domain/user.dart';
 import 'package:gtech_app/pages/image/image-handler.dart';
 import 'package:gtech_app/widgets/loader.dart';
 
-class UserCreateEdit extends StatefulWidget {
-  final DocumentSnapshot doc;
-  UserCreateEdit({this.doc});
-
+class UserInsert extends StatefulWidget {
   @override
   _UserCreateEditState createState() => _UserCreateEditState();
 }
 
-class _UserCreateEditState extends State<UserCreateEdit>
+class _UserCreateEditState extends State<UserInsert>
     with TickerProviderStateMixin, ImagePickerListener {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _firstName = new TextEditingController();
@@ -32,6 +28,7 @@ class _UserCreateEditState extends State<UserCreateEdit>
   File _image;
   String photo;
 
+  bool isEditing = false;
   bool _autoValidate = false;
   bool _loadingVisible = false;
 
@@ -178,7 +175,7 @@ class _UserCreateEditState extends State<UserCreateEdit>
           borderRadius: BorderRadius.circular(24),
         ),
         onPressed: () {
-          _emailSignUp(
+          addUser(
               firstName: _firstName.text,
               lastName: _lastName.text,
               email: _email.text,
@@ -187,11 +184,15 @@ class _UserCreateEditState extends State<UserCreateEdit>
         },
         padding: EdgeInsets.all(12),
         color: Theme.of(context).primaryColor,
-        child: Text('CADASTRAR', style: TextStyle(color: Colors.white)),
+        child: Text(isEditing ? "Editar" : "Cadastrar",
+            style: TextStyle(color: Colors.white)),
       ),
     );
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(this.isEditing ? 'Editar Usuário' : 'Adicionar Usuário'),
+      ),
       backgroundColor: Colors.white,
       body: LoadingScreen(
           child: Form(
@@ -232,22 +233,22 @@ class _UserCreateEditState extends State<UserCreateEdit>
     });
   }
 
-  void _emailSignUp(
+  void addUser(
       {String firstName,
       String lastName,
       String email,
       String password,
       String photo,
       BuildContext context}) async {
-    StorageReference ref = FirebaseStorage.instance.ref().child(this.photo);
-    StorageUploadTask upload = ref.putFile(_image);
-
-    var downUrl = await (await upload.onComplete).ref.getDownloadURL();
-    
     if (_formKey.currentState.validate()) {
+      this.isEditing = true;
       try {
         SystemChannels.textInput.invokeMethod('TextInput.hide');
         await _changeLoadingVisible();
+        StorageReference ref = FirebaseStorage.instance.ref().child(this.photo);
+        StorageUploadTask upload = ref.putFile(_image);
+
+        var downUrl = await (await upload.onComplete).ref.getDownloadURL();
         //need await so it has chance to go through error if found.
         await Auth.signUp(email, password).then((uID) {
           Auth.addUserSettingsDB(new User(
@@ -257,8 +258,6 @@ class _UserCreateEditState extends State<UserCreateEdit>
               lastName: lastName,
               photo: downUrl));
         });
-        //now automatically login user too
-        //await StateWidget.of(context).logInUser(email, password);
         Navigator.of(context).pop();
       } catch (e) {
         _changeLoadingVisible();

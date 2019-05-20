@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gtech_app/pages/user/user-create-edit.dart';
+import 'package:gtech_app/pages/user/user-edit.dart';
+import 'package:gtech_app/pages/user/user-insert.dart';
 import 'package:gtech_app/pages/user/user-service.dart';
 
 class UserList extends StatefulWidget {
@@ -24,14 +25,13 @@ class _UserListState extends State<UserList> {
           stream: db.collection('users').snapshots(),
           builder:
               (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-            final int userLength = snapshot.data.documents.length;
             if (!snapshot.hasData)
               return new Center(
                 child: CircularProgressIndicator(
                   backgroundColor: Colors.black,
                 ),
               );
-
+            final int userLength = snapshot.data.documents.length;
             return ListView.builder(
                 itemCount: userLength,
                 itemBuilder: (context, index) {
@@ -45,9 +45,16 @@ class _UserListState extends State<UserList> {
                     trailing: IconButton(
                       icon: new Icon(Icons.delete),
                       color: Colors.red,
-                      onPressed: () {},
+                      onPressed: () => delete(snapshot.data.documents[index]),
                     ),
-                    onTap: () => {},
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserEdit(doc: _user)));
+
+                      print(_user.documentID);
+                    },
                   );
                 });
           },
@@ -57,16 +64,11 @@ class _UserListState extends State<UserList> {
         backgroundColor: Colors.black,
         child: Icon(Icons.add),
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => UserCreateEdit()));
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => UserInsert()));
         },
       ),
     );
-  }
-
-  navigateToEdit(DocumentSnapshot doc) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => UserCreateEdit(doc: doc)));
   }
 
   delete(DocumentSnapshot doc) async {

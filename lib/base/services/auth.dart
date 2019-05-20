@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import 'package:gtech_app/domain/settings.dart';
 import 'package:gtech_app/domain/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,9 +21,19 @@ class Auth {
         Firestore.instance
             .document("users/${user.userId}")
             .setData(user.toJson());
-        _addSettings(new Settings(
-          settingsId: user.userId,
-        ));
+      } else {
+        print("user ${user.firstName} ${user.email} exists");
+      }
+    });
+  }
+
+  static void updateUserSettingsDB(User user) async {
+    checkUserExist(user.userId).then((value) {
+      if (!value) {
+        print("user ${user.firstName} ${user.email} updated");
+        Firestore.instance
+            .document("users/${user.userId}")
+            .updateData(user.toJson());
       } else {
         print("user ${user.firstName} ${user.email} exists");
       }
@@ -46,12 +55,6 @@ class Auth {
     }
   }
 
-  static void _addSettings(Settings settings) async {
-    Firestore.instance
-        .document("settings/${settings.settingsId}")
-        .setData(settings.toJson());
-  }
-
   static Future<String> signIn(String email, String password) async {
     FirebaseUser user = await FirebaseAuth.instance
         .signInWithEmailAndPassword(email: email, password: password);
@@ -71,31 +74,11 @@ class Auth {
     }
   }
 
-  static Future<Settings> getSettingsFirestore(String settingsId) async {
-    if (settingsId != null) {
-      return Firestore.instance
-          .collection('settings')
-          .document(settingsId)
-          .get()
-          .then((documentSnapshot) => Settings.fromDocument(documentSnapshot));
-    } else {
-      print('no firestore settings available');
-      return null;
-    }
-  }
-
   static Future<String> storeUserLocal(User user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String storeUser = userToJson(user);
     await prefs.setString('user', storeUser);
     return user.userId;
-  }
-
-  static Future<String> storeSettingsLocal(Settings settings) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String storeSettings = settingsToJson(settings);
-    await prefs.setString('settings', storeSettings);
-    return settings.settingsId;
   }
 
   static Future<FirebaseUser> getCurrentFirebaseUser() async {
@@ -109,17 +92,6 @@ class Auth {
       User user = userFromJson(prefs.getString('user'));
       //print('USER: $user');
       return user;
-    } else {
-      return null;
-    }
-  }
-
-  static Future<Settings> getSettingsLocal() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('settings') != null) {
-      Settings settings = settingsFromJson(prefs.getString('settings'));
-      //print('SETTINGS: $settings');
-      return settings;
     } else {
       return null;
     }

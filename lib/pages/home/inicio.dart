@@ -21,8 +21,7 @@ class HomeScreen extends StatelessWidget {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
         (appState.firebaseUserAuth == null ||
-            appState.user == null ||
-            appState.settings == null)) {
+            appState.user == null)) {
       return SignInScreen();
     } else {
       if (appState.isLoading) {
@@ -31,11 +30,10 @@ class HomeScreen extends StatelessWidget {
         _loadingVisible = false;
       }
 
-      final email = appState?.firebaseUserAuth?.email ?? this.userDetails.email;
-      final firstName =
-          appState?.user?.firstName ?? this.userDetails.displayName;
+      final email = appState?.firebaseUserAuth?.email ?? '';
+      final firstName = appState?.user?.firstName ?? '';
       final lastName = appState?.user?.lastName ?? '';
-      final photo = appState?.user?.photo ?? this.userDetails.photoUrl;
+      final photo = appState?.user?.photo ?? '';
 
       return Scaffold(
         appBar: AppBar(
