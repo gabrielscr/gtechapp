@@ -37,9 +37,16 @@ class _UserListState extends State<UserList> {
                 itemBuilder: (context, index) {
                   final DocumentSnapshot _user = snapshot.data.documents[index];
                   return new ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(_user['photo']),
+                    leading: ClipOval(
+                  child: FadeInImage.assetNetwork(
+                    fadeInDuration: const Duration(
+                      seconds: 1
                     ),
+                    placeholder: 'assets/images/loading.gif',
+                    image: _user['photo'],
+                    fit: BoxFit.cover,
+                  ),
+                ),
                     title: new Text(_user['firstName']),
                     subtitle: Text(_user['email']),
                     trailing: IconButton(
@@ -61,7 +68,6 @@ class _UserListState extends State<UserList> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
         child: Icon(Icons.add),
         onPressed: () {
           Navigator.push(

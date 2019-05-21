@@ -222,7 +222,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               fontSize: 50.0, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          "The start of a milionare project",
+                          "The start of a millionaire project",
                           style: TextStyle(
                               fontSize: 20.0, fontWeight: FontWeight.bold),
                         ),

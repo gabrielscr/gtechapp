@@ -20,8 +20,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
     if (!appState.isLoading &&
-        (appState.firebaseUserAuth == null ||
-            appState.user == null)) {
+        (appState.firebaseUserAuth == null || appState.user == null)) {
       return SignInScreen();
     } else {
       if (appState.isLoading) {
@@ -52,8 +51,15 @@ class HomeScreen extends StatelessWidget {
                     },
                   )
                 ],
-                currentAccountPicture: CircleAvatar(
-                  backgroundImage: NetworkImage(photo),
+                currentAccountPicture: ClipOval(
+                  child: FadeInImage.assetNetwork(
+                    fadeInDuration: const Duration(
+                      seconds: 2
+                    ),
+                    placeholder: 'assets/images/loading.gif',
+                    image: photo,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 accountName: Text(firstName + ' ' + lastName),
                 accountEmail: Text(email),
@@ -74,4 +80,7 @@ class HomeScreen extends StatelessWidget {
       );
     }
   }
+
+  String loadingImg =
+      'https://loading.io/spinners/microsoft/lg.rotating-balls-spinner.gif';
 }
