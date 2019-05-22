@@ -14,13 +14,11 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GTech App',
       theme: buildTheme(),
-      //onGenerateRoute: Navigation.router.generator,
       debugShowCheckedModeBanner: false,
       routes: {
         '/': (context) => HomeScreen(),

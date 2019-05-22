@@ -32,6 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<FirebaseUser> _signGoogle(BuildContext context) async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    _loadingVisible = true;
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 

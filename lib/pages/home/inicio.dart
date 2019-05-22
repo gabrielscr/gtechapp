@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:gtech_app/base/services/state_widget.dart';
 import 'package:gtech_app/domain/state.dart';
 import 'package:gtech_app/domain/user.dart';
@@ -13,14 +14,14 @@ class HomeScreen extends StatelessWidget {
 
   final User user;
   final FirebaseUser userDetails;
+  final GoogleSignIn googleSignIn = GoogleSignIn();
 
   StateModel appState;
   bool _loadingVisible = false;
 
   Widget build(BuildContext context) {
     appState = StateWidget.of(context).state;
-    if (!appState.isLoading &&
-        (appState.firebaseUserAuth == null || appState.user == null)) {
+    if (userDetails == null) {
       return SignInScreen();
     } else {
       if (appState.isLoading) {
@@ -29,10 +30,10 @@ class HomeScreen extends StatelessWidget {
         _loadingVisible = false;
       }
 
-      final email = appState?.firebaseUserAuth?.email ?? '';
-      final firstName = appState?.user?.firstName ?? '';
+      final email = appState?.firebaseUserAuth?.email ?? userDetails.email;
+      final firstName = appState?.user?.firstName ?? userDetails.displayName;
       final lastName = appState?.user?.lastName ?? '';
-      final photo = appState?.user?.photo ?? '';
+      final photo = appState?.user?.photo ?? userDetails.photoUrl;
 
       return Scaffold(
         appBar: AppBar(
@@ -47,15 +48,25 @@ class HomeScreen extends StatelessWidget {
                     icon: Icon(FontAwesomeIcons.signOutAlt),
                     color: Colors.white,
                     onPressed: () {
-                      StateWidget.of(context).logOutUser();
+                      if (userDetails == null) {
+                        StateWidget.of(context).logOutUser();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SignInScreen()));
+                      } else {
+                        googleSignIn.signOut();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SignInScreen()));
+                      }
                     },
                   )
                 ],
                 currentAccountPicture: ClipOval(
                   child: FadeInImage.assetNetwork(
-                    fadeInDuration: const Duration(
-                      seconds: 2
-                    ),
+                    fadeInDuration: const Duration(seconds: 2),
                     placeholder: 'assets/images/loading.gif',
                     image: photo,
                     fit: BoxFit.cover,
@@ -80,7 +91,4 @@ class HomeScreen extends StatelessWidget {
       );
     }
   }
-
-  String loadingImg =
-      'https://loading.io/spinners/microsoft/lg.rotating-balls-spinner.gif';
 }
